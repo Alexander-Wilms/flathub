@@ -16,7 +16,9 @@
 		"--share=ipc",
 		"--share=network",
 		"--filesystem=home",
-		"--env=PATH=/usr/bin:/app/bin:/usr/lib/sdk/gfortran-62/bin:/usr/lib/sdk/openjdk9/bin"
+		"--env=PATH=/usr/bin:/app/bin:/usr/lib/sdk/gfortran-62/bin:/usr/lib/sdk/openjdk9/bin",
+		"--talk-name=org.gnome.SessionManager",
+		"--device=dri"
 	],
 	"build-options": {
 		"cflags": "-O2",
