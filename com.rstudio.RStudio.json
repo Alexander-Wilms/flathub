@@ -86,7 +86,6 @@
 				"-DRSTUDIO_TARGET=Desktop",
 				"-DCMAKE_BUILD_TYPE=Release",
 				"-DCMAKE_INSTALL_PREFIX=/app",
-				"-DQt5WebKitWidgets_DIR=/app/lib/cmake/Qt5WebKitWidgets",
 				"-DQT_QMAKE_EXECUTABLE=/usr/bin/qmake",
 				"-DRSTUDIO_INSTALL_FREEDESKTOP:BOOL=true"
 			],
