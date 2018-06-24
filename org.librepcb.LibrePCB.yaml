@@ -4,6 +4,8 @@ runtime-version: 5.11
 sdk: org.kde.Sdk
 command: librepcb
 rename-icon: librepcb
+rename-desktop-file: librepcb.desktop
+rename-appdata-file: librepcb.appdata.xml
 finish-args:
 - --socket=wayland
 - --socket=x11
@@ -13,18 +15,6 @@ finish-args:
 cleanup:
 - /include
 modules:
-- shared-modules/udev/udev-175.json
-
-- shared-modules/glu/glu-9.0.0.json
-
-- name: SFML
-  buildsystem: cmake-ninja
-  config-opts:
-  - -DSFML_INSTALL_PKGCONFIG_FILES=TRUE
-  sources:
-  - type: archive
-    url: http://www.sfml-dev.org/files/SFML-2.5.0-sources.zip
-    sha256: a821918cf7fd28d0ca03b9de3313232b2cbf212ae787d904df25be1c67be259e
 
 - name: librepcb
   buildsystem: qmake
@@ -32,3 +22,8 @@ modules:
   sources:
   - type: git
     url: https://github.com/LibrePCB/LibrePCB
+  - type: file
+    path: librepcb.appdata.xml
+  post-install:  
+  - install -Dm 644 /app/share/pixmaps/librepcb.svg /app/share/icons/hicolor/scalable/apps/librepcb.svg
+  - install -Dm 644 ../librepcb.appdata.xml /app/share/metainfo/librepcb.appdata.xml
