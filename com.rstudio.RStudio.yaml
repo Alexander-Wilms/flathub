@@ -5,6 +5,7 @@ sdk: org.kde.Sdk
 sdk-extensions:
 - org.freedesktop.Sdk.Extension.gfortran-62
 - org.freedesktop.Sdk.Extension.openjdk10
+- org.freedesktop.Sdk.Extension.texlive
 command: rstudio
 rename-icon: rstudio
 rename-desktop-file: rstudio.desktop
@@ -14,22 +15,28 @@ finish-args:
 - --share=ipc
 - --share=network
 - --filesystem=home
-- --env=PATH=/usr/bin:/app/bin:/usr/lib/sdk/gfortran-62/bin:/usr/lib/sdk/openjdk9/bin
 - --talk-name=org.gnome.SessionManager
 - --device=dri
+- --env=PATH=/usr/bin:/app/bin:/app/bin/x86_64-linux
+- --env=QTWEBENGINE_DISABLE_SANDBOX=1
 build-options:
   cflags: -O2
   cxxflags: -O2
   env:
-    PATH: /usr/bin:/app/bin:/usr/lib/sdk/gfortran-62/bin:/usr/lib/sdk/openjdk9/bin
+    PATH: /usr/bin:/app/bin:/usr/lib/sdk/gfortran-62/bin:/usr/lib/sdk/openjdk10/bin
 cleanup:
 - /include
 modules:
+- name: texlive
+  buildsystem: simple
+  build-commands:
+  - /usr/lib/sdk/texlive/install.sh
+
 - name: boost
   buildsystem: simple
   build-commands:
-  - ./bootstrap.sh
-  - ./b2 install --prefix=/app
+  - ./bootstrap.sh --without-libraries=python
+  - ./b2 --without-python --prefix=/app install
   sources:
   - type: archive
     url: https://dl.bintray.com/boostorg/release/1.67.0/source/boost_1_67_0.tar.bz2
@@ -60,10 +67,10 @@ modules:
     sha256: cebb705dbbe26a41d359b8be08ec066caba4e8686670070ce44bbf2b57ae113f
 
 - name: rstudio
-  buildsystem: cmake-ninja
+  buildsystem: cmake
   config-opts:
   - -DRSTUDIO_TARGET=Desktop
-  - -DCMAKE_BUILD_TYPE=Release
+  - -DCMAKE_BUILD_TYPE=RelWithDebInfo
   - -DCMAKE_INSTALL_PREFIX=/app
   - -DQT_QMAKE_EXECUTABLE=/usr/bin/qmake
   - -DRSTUDIO_INSTALL_FREEDESKTOP:BOOL=true
@@ -72,9 +79,8 @@ modules:
     env:
       GIT_DISCOVERY_ACROSS_FILESYSTEM: 'true'
   sources:
-  - type: archive
-    url: https://github.com/rstudio/rstudio/archive/v1.1.456.tar.gz
-    sha256: 1362ad0afdb214d85e4edf86a1d42d0f83d0fa91dc4e5079af6424df9b1573d0
+  - type: git
+    url: https://github.com/rstudio/rstudio
   - type: archive
     url: https://s3.amazonaws.com/rstudio-dictionaries/core-dictionaries.zip
     sha256: 4341a9630efb9dcf7f215c324136407f3b3d6003e1c96f2e5e1f9f14d5787494
@@ -116,3 +122,8 @@ modules:
   - type: shell
     commands:
     - sed -i -- 's/usr/app/g' src/cpp/desktop/CMakeLists.txt
+
+- name: gfortran
+  buildsystem: simple
+  build-commands:
+  - /usr/lib/sdk/gfortran-62/install.sh
