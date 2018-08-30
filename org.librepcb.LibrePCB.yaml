@@ -3,17 +3,13 @@ runtime: org.kde.Sdk
 runtime-version: 5.11
 sdk: org.kde.Sdk
 command: librepcb
-rename-icon: librepcb
-rename-desktop-file: librepcb.desktop
-rename-appdata-file: librepcb.appdata.xml
 finish-args:
 - --socket=wayland
 - --socket=x11
 - --share=ipc
 - --device=dri
-- --share=network
-cleanup:
-- /include
+- --share=network # required for downloading libraries
+- --filesystem=home # required for creating the workspace, storing libraries etc.
 modules:
 
 - name: librepcb
@@ -22,8 +18,3 @@ modules:
   sources:
   - type: git
     url: https://github.com/LibrePCB/LibrePCB
-  - type: file
-    path: librepcb.appdata.xml
-  post-install:  
-  - install -Dm 644 /app/share/pixmaps/librepcb.svg /app/share/icons/hicolor/scalable/apps/librepcb.svg
-  - install -Dm 644 ../librepcb.appdata.xml /app/share/metainfo/librepcb.appdata.xml
