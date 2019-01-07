@@ -1,0 +1,289 @@
+app-id: org.mixxx.Mixxx
+runtime: org.kde.Sdk
+runtime-version: '5.12'
+sdk: org.kde.Sdk
+command: octave
+rename-icon: octave
+sdk-extensions:
+- org.freedesktop.Sdk.Extension.openjdk11
+finish-args:
+- --socket=wayland
+- --socket=x11
+- --share=ipc
+- --device=dri
+- --socket=pulseaudio
+- --share=network
+- --filesystem=host
+- --filesystem=xdg-config/kdeglobals:ro # gives application access to kdeglobals
+- --talk-name=com.canonical.AppMenu.Registrar # gives application access to dbus menu
+- --talk-name=org.freedesktop.Flatpak # allows spawning processes on the host via flatpak-spawn --host
+- --env=PATH=/app/bin:/usr/bin:/app/jre/bin
+- --env=CPPFLAGS=-I/app/include # required for building some Octave forge packages
+- --env=LDFLAGS=-L/app/lib # required for building some Octave forge packages
+cleanup:
+- /bin/*lpr*.sh
+- /bin/GraphicsMagick*config
+- /bin/fltk-config
+- /bin/gif2h5
+- /bin/glpsol
+- /bin/h5*
+- /bin/isympy
+- /bin/qconvex
+- /bin/qdelaunay
+- /bin/qhalf
+- /bin/qhull
+- /bin/qvoronoi
+- /bin/rbox
+- /examples
+- /include/QSci
+- /lib/cmake
+- /lib/lib*.a
+- /lib/lib*.la
+- /lib/lib*.settings
+- /lib/libqhull_*
+- /lib/octave/*/lib*.la
+- /man
+- /share/applications/fluid.desktop
+- /share/doc
+- /share/fltk
+- /share/hdf5_examples
+- /share/man
+- fluid
+- fluid.*
+build-options:
+  env:
+    PATH: /app/bin:/usr/bin:/usr/lib/sdk/openjdk11/bin
+modules:
+- name: scons # dependency of mixxx
+  cleanup:
+  - "*"
+  buildsystem: simple
+  build-commands:
+  - python setup.py install --prefix=/app
+  sources:
+  - type: archive
+    url: http://downloads.sourceforge.net/project/scons/scons/2.5.1/scons-2.5.1.tar.gz
+    sha256: 0b25218ae7b46a967db42f2a53721645b3d42874a65f9552ad16ce26d30f51f2
+    
+- name: lv2 # dependency of lilv
+  buildsystem: simple
+  build-commands:
+  - ./waf configure --prefix=/app
+  - ./waf
+  - ./waf install
+  sources:
+  - type: archive
+    url: http://lv2plug.in/spec/lv2-1.14.0.tar.bz2
+    sha256: b8052683894c04efd748c81b95dd065d274d4e856c8b9e58b7c3da3db4e71d32
+    
+- name: serd # dependency of lilv
+  buildsystem: simple
+  build-commands:
+  - ./waf configure --prefix=/app
+  - ./waf
+  - ./waf install
+  sources:
+  - type: archive
+    url: https://github.com/drobilla/serd/archive/v0.30.0.tar.gz
+    sha256: 6d67276c298a60e9eccf00e5fdaff42ced475108b4e1c1f8d71b215578bda93c
+    
+- name: sord # dependency of lilv
+  buildsystem: simple
+  build-commands:
+  - ./waf configure --prefix=/app
+  - ./waf
+  - ./waf install
+  sources:
+  - type: archive
+    url: https://github.com/drobilla/sord/archive/v0.16.2.tar.gz
+    sha256: 8d99ac3ce98992460fb23ee6205d1174c33c0ec5de1a0d79cf9da5a3d686d070
+    
+- name: sratom # dependency of lilv
+  buildsystem: simple
+  build-commands:
+  - ./waf configure --prefix=/app
+  - ./waf
+  - ./waf install
+  sources:
+  - type: archive
+    url: https://github.com/drobilla/sratom/archive/v0.6.2.tar.gz
+    sha256: de4adc09a767a991cb6851fd167ab78199fbc9ebbe6ab7dc86eea148524114ef
+    
+- name: lilv # dependency of mixxx
+  buildsystem: simple
+  build-commands:
+  - ./waf configure --prefix=/app
+  - ./waf
+  - ./waf install
+  sources:
+  - type: archive
+    url: http://download.drobilla.net/lilv-0.24.4.tar.bz2
+    sha256: c33b84b7a6e8e8fffb412fbcd6f69e59ca297ef3e29d829249b4ccc94f634438
+    
+- name: portaudio # dependency of mixxx
+  sources:
+  - type: archive
+    url: http://www.portaudio.com/archives/pa_stable_v190600_20161030.tgz
+    sha256: f5a21d7dcd6ee84397446fa1fa1a0675bb2e8a4a6dceb4305a8404698d8d1513
+    
+- name: portmidi # dependency of mixxx
+  buildsystem: cmake-ninja
+  config-opts:
+    - -DCMAKE_LIBRARY_OUTPUT_DIRECTORY=/app/lib
+    - -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY=/app/lib
+    - -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=/app/bin
+  sources:
+    - type: archive
+      url: https://sourceforge.net/projects/portmedia/files/portmidi/217/portmidi-src-217.zip
+      sha256: 08e9a892bd80bdb1115213fb72dc29a7bf2ff108b378180586aa65f3cfd42e0f
+    - type: patch
+      path: portmidi-no-java.patch
+  cleanup:
+    - /bin
+    - /lib/pkgconfig
+    - /include
+    - '*.a'
+    - '*.la'
+    
+- shared-modules/glu/glu-9.0.0.json # dependency of mixxx
+
+- name: taglib # dependency of mixxx
+  buildsystem: cmake-ninja
+  sources:
+  - type: archive
+    url: https://github.com/taglib/taglib/archive/v1.11.1.tar.gz
+    sha256: b6d1a5a610aae6ff39d93de5efd0fdc787aa9e9dc1e7026fa4c961b26563526b
+    
+- name: protobuf # dependency of mixxx
+  config-opts:
+    - --with-zlib
+    - --with-pic
+  sources:
+    - type: archive
+      url: https://github.com/protocolbuffers/protobuf/archive/v3.6.1.3.tar.gz
+      sha256: 73fdad358857e120fd0fa19e071a96e15c0f23bb25f85d3f7009abfd4f264a2a
+  cleanup:
+    - /bin
+
+- name: chromaprint # dependency of mixxx
+  buildsystem: cmake-ninja
+  sources:
+  - type: archive
+    url: https://github.com/acoustid/chromaprint/releases/download/v1.4.3/chromaprint-1.4.3.tar.gz
+    sha256: ea18608b76fb88e0203b7d3e1833fb125ce9bb61efe22c6e169a50c52c457f82
+
+- name: ladspa # dependency of vamp-plugin-sdk
+  buildsystem: simple
+  sources:
+  - type: archive
+    url: http://www.ladspa.org/download/ladspa_sdk_1.15.tgz
+    sha256: 4229959b09d20c88c8c86f4aa76427843011705df22d9c28b38359fd1829fded
+  build-commands:
+  - cp src/ladspa.h /app/include/
+    
+- name: vamp-plugin-sdk # dependency of rubberband
+  no-autogen: true
+  sources:
+  - type: archive
+    url: https://github.com/c4dm/vamp-plugin-sdk/archive/vamp-plugin-sdk-v2.7.1.tar.gz
+    sha256: 5d0adef7546d028c8d1363263f84bde4385d8f382017e0de25790fd5a4751d15
+
+- name: rubberband # dependency of mixxx
+  buildsystem: simple
+  build-options:
+    env:
+      JAVA_HOME: /usr/lib/sdk/openjdk11/jvm/openjdk-11
+  no-autogen: true
+  sources:
+  - type: archive
+    url: https://bitbucket.org/breakfastquay/rubberband/get/v1.8.2.tar.bz2
+    sha256: 2489640bfdfe3f57657688d3e43bc8332b9c9b20de1a0d2216fb62676575c210
+  build-commands: # cf. https://git.archlinux.org/svntogit/community.git/tree/trunk/PKGBUILD?h=packages/rubberband
+  - ./configure --prefix=/app
+  - make
+  - make jni
+  - make install
+
+- name: libmad # dependency of mixxx, copied from https://github.com/flathub/com.stepmania.StepMania
+  sources:
+  - type: archive
+    url: https://downloads.sourceforge.net/project/mad/libmad/0.15.1b/libmad-0.15.1b.tar.gz
+    sha256: bbfac3ed6bfbc2823d3775ebb931087371e142bb0e9bb1bee51a76a6e0078690
+  - type: patch
+    path: libmad/libmad-0.15.1b-multiarch.patch
+  - type: patch
+    path: libmad/libmad-0.15.1b-ppc.patch
+  - type: patch
+    path: libmad/Provide-Thumb-2-alternative-code-for-MAD_F_MLN.diff
+  - type: patch
+    path: libmad/libmad.thumb.diff
+  - type: patch
+    path: libmad/libmad-0.15.1b-cflags.patch
+  - type: patch
+    path: libmad/libmad-0.15.1b-cflags-O2.patch
+    
+- name: libid3tag # dependency of mixxx, copied from https://git.archlinux.org/svntogit/packages.git/tree/trunk/PKGBUILD?h=packages/libid3tag
+  config-opts: 
+  - --disable-static
+  post-install: 
+  - install -Dm644 -t /app/lib/pkgconfig/ id3tag.pc
+  sources: 
+  - type: archive
+    url: https://downloads.sourceforge.net/project/mad/libid3tag/0.15.1b/libid3tag-0.15.1b.tar.gz
+    sha256: 63da4f6e7997278f8a3fef4c6a372d342f705051d1eeb6a46a86b03610e26151
+  - type: patch
+    path: libid3tag/10_utf16.diff
+  - type: patch
+    path: libid3tag/11_unknown_encoding.diff
+  - type: patch
+    path: libid3tag/CVE-2008-2109.patch
+    strip-components: 0
+  - type: patch
+    path: libid3tag/libid3tag-gperf.patch
+  - type: file
+    path: libid3tag/id3tag.pc
+  - type: shell
+    commands: 
+    - rm compat.c frametype.c
+
+- shared-modules/udev/udev-175.json
+
+- name: libusb
+  sources:
+  - type: archive
+    url: https://github.com/libusb/libusb/archive/v1.0.22.tar.gz
+    sha256: 3500f7b182750cd9ccf9be8b1df998f83df56a39ab264976bdb3307773e16f48
+    
+- name: libshout
+  rm-configure: true
+  sources:
+  - type: archive
+    url: http://downloads.xiph.org/releases/libshout/libshout-2.4.1.tar.gz
+    sha256: f3acb8dec26f2dbf6df778888e0e429a4ce9378a9d461b02a7ccbf2991bbf24d
+  - type: patch
+    path: 01-libshout-tls-compile-with-OpenSSL-1.1.0.patch
+  - type: script
+    commands:
+    - autoreconf -fiv
+    dest-filename: autogen.sh
+    
+- name: hidapi
+  sources:
+  - type: archive
+    url: https://github.com/signal11/hidapi/archive/hidapi-0.8.0-rc1.tar.gz
+    sha256: 3c147200bf48a04c1e927cd81589c5ddceff61e6dac137a605f6ac9793f4af61
+
+- name: upower
+  sources:
+  - type: archive
+    url: https://gitlab.freedesktop.org/upower/upower/-/archive/UPOWER_0_99_9/upower-UPOWER_0_99_9.tar.bz2
+    sha256: 388b273c59cad7d612dfe249c93f1e9c16532d6409f7fdc384bfa362e0dc5f0f
+    
+- name: mixxx
+  buildsystem: simple
+  build-commands:
+  - scons prefix=/app
+  sources:
+  - type: archive
+    url: https://github.com/mixxxdj/mixxx/archive/release-2.2.0.tar.gz
+    sha256: 03c819a55b1abee778c02d2ad889246c9ead9dd2948572a711b2aa94e4839faf
