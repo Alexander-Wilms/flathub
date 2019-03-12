@@ -1,9 +1,8 @@
 app-id: com.rstudio.RStudio
 runtime: org.kde.Sdk
-runtime-version: 5.11
+runtime-version: '5.12'
 sdk: org.kde.Sdk
 sdk-extensions:
-- org.freedesktop.Sdk.Extension.gfortran-62
 - org.freedesktop.Sdk.Extension.openjdk10
 - org.freedesktop.Sdk.Extension.texlive
 command: rstudio
@@ -20,10 +19,8 @@ finish-args:
 - --env=PATH=/usr/bin:/app/bin:/app/bin/x86_64-linux
 - --env=QTWEBENGINE_DISABLE_SANDBOX=1
 build-options:
-  cflags: -O2
-  cxxflags: -O2
   env:
-    PATH: /usr/bin:/app/bin:/usr/lib/sdk/gfortran-62/bin:/usr/lib/sdk/openjdk10/bin
+    PATH: /usr/bin:/app/bin:/usr/lib/sdk/openjdk10/bin
 cleanup:
 - /include
 modules:
@@ -45,8 +42,6 @@ modules:
 - name: r
   config-opts:
   - --enable-R-shlib
-  build-options:
-    ldflags: -L/usr/lib/sdk/gfortran-62/lib
   sources:
   - type: archive
     url: https://cran.r-project.org/src/base/R-3/R-3.5.1.tar.gz
@@ -67,7 +62,7 @@ modules:
     sha256: cebb705dbbe26a41d359b8be08ec066caba4e8686670070ce44bbf2b57ae113f
 
 - name: rstudio
-  buildsystem: cmake
+  buildsystem: cmake-ninja
   config-opts:
   - -DRSTUDIO_TARGET=Desktop
   - -DCMAKE_BUILD_TYPE=RelWithDebInfo
@@ -75,12 +70,12 @@ modules:
   - -DQT_QMAKE_EXECUTABLE=/usr/bin/qmake
   - -DRSTUDIO_INSTALL_FREEDESKTOP:BOOL=true
   build-options:
-    ldflags: -L/usr/lib/sdk/gfortran-62/lib
     env:
       GIT_DISCOVERY_ACROSS_FILESYSTEM: 'true'
   sources:
   - type: git
     url: https://github.com/rstudio/rstudio
+    tag: v1.2.1320
   - type: archive
     url: https://s3.amazonaws.com/rstudio-dictionaries/core-dictionaries.zip
     sha256: 4341a9630efb9dcf7f215c324136407f3b3d6003e1c96f2e5e1f9f14d5787494
@@ -122,8 +117,3 @@ modules:
   - type: shell
     commands:
     - sed -i -- 's/usr/app/g' src/cpp/desktop/CMakeLists.txt
-
-- name: gfortran
-  buildsystem: simple
-  build-commands:
-  - /usr/lib/sdk/gfortran-62/install.sh
